@@ -1,0 +1,14 @@
+#Data required to connect to database:
+host: "127.0.0.1"
+port: 3306
+database: "db_name"
+user: "root"
+password: ""
+pool:
+  maximum-pool-size: 10
+  minimum-idle: 10
+  maximum-lifetime: 180000
+  connection-timeout: 5000
+properties:
+  useUnicode: true
+  characterEncoding: "utf8"

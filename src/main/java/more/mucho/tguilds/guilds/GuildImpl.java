@@ -3,6 +3,7 @@ package more.mucho.tguilds.guilds;
 import java.util.*;
 
 public class GuildImpl implements Guild {
+    private int ID;
     private String name;
     private String tag;
     private Member owner;
@@ -12,12 +13,21 @@ public class GuildImpl implements Guild {
         if (owner == null || owner.getRank() != RANK.OWNER) {
             throw new IllegalArgumentException("Owner must not be null and must have rank OWNER.");
         }
-
         this.name = name;
         this.tag = tag;
         this.owner = owner;
         this.members = new HashSet<>();
         this.members.add(owner);
+    }
+
+    @Override
+    public int getID() {
+        return ID;
+    }
+
+    @Override
+    public void setID(int ID) {
+        this.ID = ID;
     }
 
     @Override
@@ -64,6 +74,7 @@ public class GuildImpl implements Guild {
                 .findFirst();
     }
 
+    @Override
     public boolean addMember(Member member) {
         if (member.getRank() == RANK.OWNER) {
             throw new IllegalArgumentException("Cannot add another owner to the guild.");
@@ -71,6 +82,7 @@ public class GuildImpl implements Guild {
         return members.add(member);
     }
 
+    @Override
     public boolean removeMember(Member member) {
         if (member.getRank() == RANK.OWNER) {
             throw new IllegalArgumentException("Cannot remove the owner from the guild.");
@@ -78,6 +90,7 @@ public class GuildImpl implements Guild {
         return members.remove(member);
     }
 
+    @Override
     public boolean promoteMember(Member member, RANK newRank) {
         if (!members.contains(member)) {
             throw new IllegalArgumentException("Member is not part of the guild.");
@@ -85,10 +98,11 @@ public class GuildImpl implements Guild {
         if (newRank.power <= member.getRank().power) {
             throw new IllegalArgumentException("New rank must have higher power than current rank.");
         }
-        ((MemberImpl) member).setRank(newRank); // Casting to a concrete implementation of Member
+        member.setRank(newRank); // Casting to a concrete implementation of Member
         return true;
     }
 
+    @Override
     public boolean demoteMember(Member member, RANK newRank) {
         if (!members.contains(member)) {
             throw new IllegalArgumentException("Member is not part of the guild.");
@@ -96,7 +110,7 @@ public class GuildImpl implements Guild {
         if (newRank.power >= member.getRank().power) {
             throw new IllegalArgumentException("New rank must have lower power than current rank.");
         }
-        ((MemberImpl) member).setRank(newRank); // Casting to a concrete implementation of Member
+        member.setRank(newRank); // Casting to a concrete implementation of Member
         return true;
     }
 
@@ -112,14 +126,38 @@ public class GuildImpl implements Guild {
 
     // Example Member Implementation
     public static class MemberImpl implements Member {
+        private int ID;
         private final String name;
         private final UUID uuid;
         private RANK rank;
+        private int guildID;
 
-        public MemberImpl(String name, UUID uuid, RANK rank) {
+        public MemberImpl(int ID, String name, UUID uuid, RANK rank, int guildID) {
+            this.ID = ID;
             this.name = name;
             this.uuid = uuid;
             this.rank = rank;
+            this.guildID = guildID;
+        }
+
+        @Override
+        public int getID() {
+            return ID;
+        }
+
+        @Override
+        public void setID(int ID) {
+            this.ID = ID;
+        }
+
+        @Override
+        public int getGuildID() {
+            return guildID;
+        }
+
+        @Override
+        public void setGuildID(int guildID) {
+            this.guildID = guildID;
         }
 
         @Override
@@ -147,6 +185,7 @@ public class GuildImpl implements Guild {
                     "name='" + name + '\'' +
                     ", uuid=" + uuid +
                     ", rank=" + rank +
+                    ", guildID=" + getGuildID() +
                     '}';
         }
     }
