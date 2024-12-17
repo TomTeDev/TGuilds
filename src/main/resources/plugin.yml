@@ -1,0 +1,4 @@
+name: TGuilds
+version: '${project.version}'
+main: more.mucho.tguilds.TGuilds
+api-version: '1.21'
