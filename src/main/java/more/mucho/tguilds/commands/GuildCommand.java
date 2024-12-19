@@ -16,6 +16,7 @@ public class GuildCommand extends AbstractCommand {
             sendMessage(sender,"command.try_help");
             return false;
         }
+        return false;
     }
 
     @Override

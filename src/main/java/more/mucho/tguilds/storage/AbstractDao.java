@@ -3,7 +3,9 @@ package more.mucho.tguilds.storage;
 import javax.sql.DataSource;
 import java.nio.ByteBuffer;
 import java.sql.*;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public abstract class AbstractDao<T, ID> {
@@ -13,14 +15,13 @@ public abstract class AbstractDao<T, ID> {
         this.dataSource = dataSource;
     }
 
-    protected Connection getConnection()throws SQLException {
+    protected Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
     protected abstract T mapResultSetToEntity(ResultSet rs) throws SQLException;
 
     protected abstract String getTableName();
-
 
 
     public Optional<T> findById(ID id, String column) {
@@ -39,6 +40,7 @@ public abstract class AbstractDao<T, ID> {
         }
         return Optional.empty();
     }
+
     public Optional<T> findByName(String name, String column) {
         String query = "SELECT * FROM " + getTableName() + " WHERE " + column + " = ? LIMIT 1";
         try (Connection connection = getConnection();
@@ -72,7 +74,25 @@ public abstract class AbstractDao<T, ID> {
         }
         return Optional.empty();
     }
+    protected Set<T> findAll(String query, Object... params) {
+        Set<T> results = new HashSet<>();
+        try (var connection = dataSource.getConnection();
+             var preparedStatement = connection.prepareStatement(query)) {
 
+            for (int i = 0; i < params.length; i++) {
+                preparedStatement.setObject(i + 1, params[i]);
+            }
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    results.add(mapResultSetToEntity(resultSet));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to execute query: " + query, e);
+        }
+        return results;
+    }
 
     public int save(String insertQuery, Object... parameters) {
         try (Connection connection = getConnection();
@@ -80,7 +100,7 @@ public abstract class AbstractDao<T, ID> {
                      insertQuery,
                      Statement.RETURN_GENERATED_KEYS
              );
-                     ) {
+        ) {
 
             for (int i = 0; i < parameters.length; i++) {
                 statement.setObject(i + 1, parameters[i]);
@@ -110,20 +130,6 @@ public abstract class AbstractDao<T, ID> {
         }
         return false;
     }
-    public boolean removeById(ID id, String column) {
-        String query = "DELETE FROM " + getTableName() + " WHERE " + column + " = ?";
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setObject(1, id);
-            int rowsAffected = statement.executeUpdate();
-
-            return rowsAffected>0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
 
     protected UUID fromBytes(byte[] bytes) {
         if (bytes != null && bytes.length == 16) {

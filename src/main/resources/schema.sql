@@ -21,4 +21,3 @@ CREATE TABLE IF NOT EXISTS `guild_members` (
   UNIQUE KEY (`name`),
   FOREIGN KEY (`guild_id`) REFERENCES `guilds`(`id`) ON DELETE CASCADE
 );
-ó

@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface GuildsDao {
-    CompletableFuture<Boolean> addGuild(Guild guild);
+    CompletableFuture<Integer> addGuild(Guild guild);
     CompletableFuture<Boolean> removeGuild(int ID);
     CompletableFuture<Optional<Guild>>getGuild(int ID);
 }

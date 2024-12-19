@@ -33,8 +33,6 @@ public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
-
-
     public int parseInt(String arg, int def) {
         try {
             return Integer.parseInt(arg);

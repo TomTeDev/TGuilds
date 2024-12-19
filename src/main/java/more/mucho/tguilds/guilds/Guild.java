@@ -9,6 +9,8 @@ public interface Guild {
 
     void setID(int ID);
 
+    UUID getUUID();
+
     String getName();
 
     void setName(String name);
@@ -20,6 +22,7 @@ public interface Guild {
     Member getOwner();
 
     Set<Member> getMembers();
+    boolean isMember(Member member);
 
     Optional<Member> getMember(String name);
 

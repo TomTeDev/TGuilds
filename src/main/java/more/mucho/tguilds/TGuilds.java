@@ -1,10 +1,13 @@
 package more.mucho.tguilds;
 
 import com.zaxxer.hikari.HikariDataSource;
+import more.mucho.tguilds.commands.AbstractCommand;
 import more.mucho.tguilds.commands.GuildCommand;
 import more.mucho.tguilds.data.MySQLConfiguration;
 import more.mucho.tguilds.listeners.ChatListener;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.BufferedReader;
@@ -20,11 +23,12 @@ import java.util.List;
 
 public final class TGuilds extends JavaPlugin {
 
-    private static TGuilds instance = null;
+    private static TGuilds INSTANCE = null;
     private HikariDataSource hikariDataSource = null;
+
     @Override
     public void onEnable() {
-        instance = this;
+        INSTANCE = this;
         initDataSource();
         registerCommands(
                 new GuildCommand()
@@ -37,12 +41,32 @@ public final class TGuilds extends JavaPlugin {
     @Override
     public void onDisable() {
         shutdownDataSource();
-        instance = null;
+        INSTANCE = null;
     }
 
+    private void registerCommands(AbstractCommand... commands) {
+        for (AbstractCommand command : commands) {
+            for (String commandName : command.getCommandNames()) {
+                PluginCommand pluginCommand = getCommand(commandName);
+                if (pluginCommand == null) continue;
+                pluginCommand.setExecutor(command);
+                pluginCommand.setTabCompleter(command);
+            }
+        }
+    }
+
+    private void registerListeners(Listener... listeners) {
+        for (Listener listener : listeners) {
+            Bukkit.getPluginManager().registerEvents(listener, this);
+        }
+    }
 
     public HikariDataSource getDataSource() {
         return this.hikariDataSource;
+    }
+
+    public static TGuilds i() {
+        return INSTANCE;
     }
 
     private void initDataSource() {

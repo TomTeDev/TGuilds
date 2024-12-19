@@ -1,23 +1,28 @@
 package more.mucho.tguilds.guilds;
 
-import java.util.*;
+import more.mucho.tguilds.storage.MembersDao;
+import more.mucho.tguilds.storage.local.MembersRepository;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public class GuildImpl implements Guild {
     private int ID;
+    private UUID guildUUID;
     private String name;
     private String tag;
-    private Member owner;
-    private final Set<Member> members;
+    private final MembersRepository membersRepository;
+    private Set<Member> membersCache;
 
-    public GuildImpl(String name, String tag, Member owner) {
-        if (owner == null || owner.getRank() != RANK.OWNER) {
-            throw new IllegalArgumentException("Owner must not be null and must have rank OWNER.");
-        }
+    public GuildImpl(int ID, String name, String tag, UUID guildUUID, MembersRepository membersRepository) {
+        this.ID = ID;
         this.name = name;
         this.tag = tag;
-        this.owner = owner;
-        this.members = new HashSet<>();
-        this.members.add(owner);
+        this.guildUUID = guildUUID;
+        this.membersRepository = membersRepository;
+        this.membersCache = null; // Load lazily
     }
 
     @Override
@@ -28,6 +33,11 @@ public class GuildImpl implements Guild {
     @Override
     public void setID(int ID) {
         this.ID = ID;
+    }
+
+    @Override
+    public UUID getUUID() {
+        return guildUUID;
     }
 
     @Override
@@ -52,24 +62,37 @@ public class GuildImpl implements Guild {
 
     @Override
     public Member getOwner() {
-        return owner;
+        for (Member member : getMembers()) {
+            if (member.getRank() == RANK.OWNER) {
+                return member;
+            }
+        }
+        throw new IllegalStateException("Guild has no owner.");
     }
 
     @Override
     public Set<Member> getMembers() {
-        return Collections.unmodifiableSet(members);
+        if (membersCache == null) {
+            membersCache = membersRepository.getAndLoadAllGuildMembers(ID).join();
+        }
+        return Collections.unmodifiableSet(membersCache);
+    }
+
+    @Override
+    public boolean isMember(Member member) {
+        return getMembers().contains(member);
     }
 
     @Override
     public Optional<Member> getMember(String name) {
-        return members.stream()
+        return getMembers().stream()
                 .filter(member -> member.getName().equalsIgnoreCase(name))
                 .findFirst();
     }
 
     @Override
     public Optional<Member> getMember(UUID memberUUID) {
-        return members.stream()
+        return getMembers().stream()
                 .filter(member -> member.getUUID().equals(memberUUID))
                 .findFirst();
     }
@@ -79,7 +102,7 @@ public class GuildImpl implements Guild {
         if (member.getRank() == RANK.OWNER) {
             throw new IllegalArgumentException("Cannot add another owner to the guild.");
         }
-        return members.add(member);
+        return getMembers().add(member);
     }
 
     @Override
@@ -87,30 +110,30 @@ public class GuildImpl implements Guild {
         if (member.getRank() == RANK.OWNER) {
             throw new IllegalArgumentException("Cannot remove the owner from the guild.");
         }
-        return members.remove(member);
+        return getMembers().remove(member);
     }
 
     @Override
     public boolean promoteMember(Member member, RANK newRank) {
-        if (!members.contains(member)) {
+        if (!getMembers().contains(member)) {
             throw new IllegalArgumentException("Member is not part of the guild.");
         }
         if (newRank.power <= member.getRank().power) {
             throw new IllegalArgumentException("New rank must have higher power than current rank.");
         }
-        member.setRank(newRank); // Casting to a concrete implementation of Member
+        member.setRank(newRank);
         return true;
     }
 
     @Override
     public boolean demoteMember(Member member, RANK newRank) {
-        if (!members.contains(member)) {
+        if (!getMembers().contains(member)) {
             throw new IllegalArgumentException("Member is not part of the guild.");
         }
         if (newRank.power >= member.getRank().power) {
             throw new IllegalArgumentException("New rank must have lower power than current rank.");
         }
-        member.setRank(newRank); // Casting to a concrete implementation of Member
+        member.setRank(newRank);
         return true;
     }
 
@@ -119,12 +142,10 @@ public class GuildImpl implements Guild {
         return "Guild{" +
                 "name='" + name + '\'' +
                 ", tag='" + tag + '\'' +
-                ", owner=" + owner.getName() +
-                ", members=" + members.size() +
+                ", uuid=" + guildUUID.toString() +
                 '}';
     }
 
-    // Example Member Implementation
     public static class MemberImpl implements Member {
         private int ID;
         private final String name;
