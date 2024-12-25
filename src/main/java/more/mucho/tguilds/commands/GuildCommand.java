@@ -16,6 +16,28 @@ public class GuildCommand extends AbstractCommand {
             sendMessage(sender,"command.try_help");
             return false;
         }
+        if(args[0].equalsIgnoreCase("help")){
+            sendMessages(sender,"command.guild.help");
+            return true;
+        }
+
+        switch (args[0].toLowerCase()) {
+            case "create"->{}
+            case "add"->{}
+            case "join"->{}
+            case "kick"->{}
+            case "leave"->{}
+            case "info"->{}
+            case "chat"->{}
+            case "sethome"->{}
+            case "home"->{}
+            case "delete"->{}
+            case "togglechat"->{}
+        }
+
+
+
+
         return false;
     }
 
