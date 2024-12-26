@@ -11,6 +11,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
 
@@ -28,10 +29,21 @@ public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
         return commandNames;
     }
 
-    public void sendMessage(CommandSender sender, String path) {
+/*    public void sendMessage(CommandSender sender, String path) {
         String message = messages.getString(path);
         if(message == null||message.isEmpty())return;
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }*/
+    public void sendMessage(CommandSender sender, String path, Map.Entry<String, String> ... entries) {
+        String message = messages.getString(path);
+        if(message == null||message.isEmpty())return;
+        for(Map.Entry<String,String> entry : entries){
+            message = message.replace(entry.getKey(), entry.getValue());
+        }
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }
+    public void sendCorrectCommand(CommandSender sender,String path){
+        sender.sendMessage(TextUtils.color(messages.getString("correct_commands."+path)));
     }
     public void sendMessages(CommandSender sender, String path) {
         List<String> messages = this.messages.getStringList(path);

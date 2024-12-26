@@ -28,6 +28,9 @@ public class Repositories {
     public MembersRepository getMembersRepository() {
         return membersRepository;
     }
+    public GuildsRepository getGuildsRepository(){
+        return guildsRepository;
+    }
 
 
 

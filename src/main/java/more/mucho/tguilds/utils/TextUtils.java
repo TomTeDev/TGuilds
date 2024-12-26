@@ -1,9 +1,6 @@
 package more.mucho.tguilds.utils;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,6 +104,11 @@ public class TextUtils {
             out.add(feedPlaceholders(line, placeholders));
         }
         return out;
+    }
+
+    public static String subString(String[] array,int startIndex,int endIndex){
+        List<String> list = new ArrayList<>(Arrays.asList(array).subList(startIndex, endIndex));
+        return String.join(" ",list);
     }
 
 }

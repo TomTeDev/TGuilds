@@ -7,8 +7,10 @@ import java.util.concurrent.CompletableFuture;
 
 public interface GuildsRepository {
     CompletableFuture<Optional<Guild>> getOrLoad(int guildId);
+    CompletableFuture<Optional<Guild>> getOrLoadByName(String name);
+    CompletableFuture<Optional<Guild>> getOrLoadByTag(String tag);
 
-    void saveGuild(Guild guild);
+    CompletableFuture<Boolean> saveGuild(Guild guild);
 
     void deleteGuild(int guildId);
 

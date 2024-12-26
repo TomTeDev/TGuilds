@@ -11,9 +11,10 @@ import java.util.concurrent.CompletableFuture;
 public interface MembersRepository {
 
     CompletableFuture<Optional<Member>> getOrLoad(String playerName);
-
+    CompletableFuture<Boolean> delete(int memberID);
+    CompletableFuture<Boolean> save(Member member);
     boolean isLoaded(Player player);
 
-
     CompletableFuture<Set<Member>> getAndLoadAllGuildMembers(int guildID);
+    MembersCache cache();
 }

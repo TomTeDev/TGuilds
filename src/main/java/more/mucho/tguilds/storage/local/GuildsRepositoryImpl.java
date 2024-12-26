@@ -28,11 +28,12 @@ public class GuildsRepositoryImpl implements GuildsRepository {
                 );
     }
 
-    public void saveGuild(Guild guild) {
-        guildDao.addGuild(guild).thenAccept(guildID -> {
-            if (guildID < 0) return;
+    public CompletableFuture<Boolean> saveGuild(Guild guild) {
+        return guildDao.addGuild(guild).thenApply(guildID -> {
+            if (guildID < 0) return false;
             guild.setID(guildID);
             guildsCache.add(guild, guildID);
+            return true;
         });
     }
 
