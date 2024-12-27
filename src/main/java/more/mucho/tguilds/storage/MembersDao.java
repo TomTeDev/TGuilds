@@ -13,4 +13,5 @@ public interface MembersDao {
     CompletableFuture<Optional<Member>> getMember(String memberName);
     CompletableFuture<Optional<Member>> getMember(UUID memberUUID);
    CompletableFuture<Set<Member>> getAllGuildMembers(int guildID);
+   CompletableFuture<Integer> save(Member member);
 }

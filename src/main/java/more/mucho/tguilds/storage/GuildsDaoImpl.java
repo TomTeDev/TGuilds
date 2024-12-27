@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class GuildsDaoImpl extends AbstractDao<Guild,Integer> implements GuildsDao {
+public class GuildsDaoImpl extends AbstractDao<Guild, Integer> implements GuildsDao {
 
     public GuildsDaoImpl(DataSource dataSource) {
         super(dataSource);
@@ -46,11 +46,21 @@ public class GuildsDaoImpl extends AbstractDao<Guild,Integer> implements GuildsD
 
     @Override
     public CompletableFuture<Boolean> removeGuild(int ID) {
-        return CompletableFuture.supplyAsync(()-> deleteById(ID,"id"));
+        return CompletableFuture.supplyAsync(() -> deleteById(ID, "id"));
     }
 
     @Override
     public CompletableFuture<Optional<Guild>> getGuild(int ID) {
-       return CompletableFuture.supplyAsync(()-> findById(ID, "id"));
+        return CompletableFuture.supplyAsync(() -> findById(ID, "id"));
+    }
+
+    @Override
+    public CompletableFuture<Optional<Guild>> getByTag(String tag) {
+        return CompletableFuture.supplyAsync(() -> findByName(tag, "tag"));
+    }
+
+    @Override
+    public CompletableFuture<Optional<Guild>> getByName(String name) {
+        return CompletableFuture.supplyAsync(() -> findByName(name, "name"));
     }
 }

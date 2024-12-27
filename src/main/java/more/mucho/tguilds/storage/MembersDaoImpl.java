@@ -3,6 +3,7 @@ package more.mucho.tguilds.storage;
 import more.mucho.tguilds.guilds.GuildImpl;
 import more.mucho.tguilds.guilds.Member;
 import more.mucho.tguilds.guilds.RANK;
+
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,13 +33,10 @@ public class MembersDaoImpl extends AbstractDao<Member, Integer> implements Memb
         return "guild_members";
     }
 
-    public CompletableFuture<Boolean> saveMember(Member member) {
+    public CompletableFuture<Integer> save(Member member) {
         return CompletableFuture.supplyAsync(() -> {
-            String insertQuery = "INSERT INTO "+getTableName()+" (name, player_uuid, rank, guild_id) VALUES (?, ?, ?, ?)";
-            int id = save(insertQuery, member.getName(), toBytes(member.getUUID()), member.getRank().name(), member.getGuildID());
-            if (id < 0) return false;
-            member.setID(id);
-            return true;
+            String insertQuery = "INSERT INTO " + getTableName() + " (name, player_uuid, rank, guild_id) VALUES (?, ?, ?, ?)";
+            return save(insertQuery, member.getName(), toBytes(member.getUUID()), member.getRank().name(), member.getGuildID());
         });
 
     }
@@ -46,7 +44,7 @@ public class MembersDaoImpl extends AbstractDao<Member, Integer> implements Memb
     @Override
     public CompletableFuture<Boolean> removeMember(int ID) {
         return CompletableFuture.supplyAsync(() -> {
-            return deleteById(ID,"id");
+            return deleteById(ID, "id");
         });
     }
 
@@ -72,10 +70,12 @@ public class MembersDaoImpl extends AbstractDao<Member, Integer> implements Memb
     }
 
     @Override
-    public CompletableFuture<Set<Member>>getAllGuildMembers(int guildID){
+    public CompletableFuture<Set<Member>> getAllGuildMembers(int guildID) {
         return CompletableFuture.supplyAsync(() -> {
-            String query = "SELECT * FROM "+getTableName()+" WHERE guild_id = ?";
+            String query = "SELECT * FROM " + getTableName() + " WHERE guild_id = ?";
             return findAll(query, guildID);
         });
     }
+
+
 }

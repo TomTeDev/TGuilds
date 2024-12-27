@@ -17,6 +17,7 @@ public class MembersRepositoryImpl implements MembersRepository {
         this.dao = dao;
         this.cache = cache;
     }
+
     public CompletableFuture<Optional<Member>> getOrLoad(String memberName) {
         return CompletableFuture.supplyAsync(() -> cache.get(memberName))
                 .thenCompose(optionalMember -> optionalMember
@@ -30,11 +31,35 @@ public class MembersRepositoryImpl implements MembersRepository {
                 );
     }
 
+    @Override
+    public CompletableFuture<Boolean> delete(int memberID) {
+        return dao.removeMember(memberID).thenApply(removed -> {
+            if (removed) {
+                cache.remove(memberID);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> save(Member member) {
+        return dao.save(member).thenApply(id -> {
+            if (id >= 0) {
+                member.setID(id);
+                cache.add(member, id);
+                return true;
+            }
+            return false;
+        });
+    }
+
 
     @Override
     public boolean isLoaded(Player player) {
         return cache.get(player.getName()).isPresent();
     }
+
     public CompletableFuture<Set<Member>> getAndLoadAllGuildMembers(int guildID) {
         return dao.getAllGuildMembers(guildID).thenApply(members -> {
             cache.addAll(members, Member::getID);
@@ -42,5 +67,8 @@ public class MembersRepositoryImpl implements MembersRepository {
         });
     }
 
+    public MembersCache cache() {
+        return cache;
+    }
 
 }

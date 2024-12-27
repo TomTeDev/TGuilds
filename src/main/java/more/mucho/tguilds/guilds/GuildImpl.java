@@ -1,7 +1,14 @@
 package more.mucho.tguilds.guilds;
 
-import more.mucho.tguilds.storage.MembersDao;
+import more.mucho.tguilds.storage.InvitesHandler;
+import more.mucho.tguilds.storage.InvitesHandlerImpl;
+import more.mucho.tguilds.storage.PermissionsHandler;
+import more.mucho.tguilds.storage.PermissionsHandlerImpl;
 import more.mucho.tguilds.storage.local.MembersRepository;
+import more.mucho.tguilds.utils.Config;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -15,6 +22,9 @@ public class GuildImpl implements Guild {
     private String tag;
     private final MembersRepository membersRepository;
     private Set<Member> membersCache;
+    private Location home = null;
+    private final PermissionsHandler permissionsHandler;
+    private final InvitesHandler invitesHandler;
 
     public GuildImpl(int ID, String name, String tag, UUID guildUUID, MembersRepository membersRepository) {
         this.ID = ID;
@@ -23,6 +33,19 @@ public class GuildImpl implements Guild {
         this.guildUUID = guildUUID;
         this.membersRepository = membersRepository;
         this.membersCache = null; // Load lazily
+        this.permissionsHandler = new PermissionsHandlerImpl();
+        this.invitesHandler = new InvitesHandlerImpl();
+    }
+
+    public GuildImpl(int ID, String name, String tag, UUID guildUUID, MembersRepository membersRepository, PermissionsHandler permissionsHandler, InvitesHandler invitesHandler) {
+        this.ID = ID;
+        this.name = name;
+        this.tag = tag;
+        this.guildUUID = guildUUID;
+        this.membersRepository = membersRepository;
+        this.membersCache = null; // Load lazily
+        this.permissionsHandler = permissionsHandler;
+        this.invitesHandler = invitesHandler;
     }
 
     @Override
@@ -61,6 +84,16 @@ public class GuildImpl implements Guild {
     }
 
     @Override
+    public void setHome(Location location) {
+        this.home = location.clone();
+    }
+
+    @Override
+    public Optional<Location> getHome() {
+        return Optional.ofNullable(home);
+    }
+
+    @Override
     public Member getOwner() {
         for (Member member : getMembers()) {
             if (member.getRank() == RANK.OWNER) {
@@ -72,6 +105,7 @@ public class GuildImpl implements Guild {
 
     @Override
     public Set<Member> getMembers() {
+        //TODO wont it cause lag?
         if (membersCache == null) {
             membersCache = membersRepository.getAndLoadAllGuildMembers(ID).join();
         }
@@ -81,6 +115,17 @@ public class GuildImpl implements Guild {
     @Override
     public boolean isMember(Member member) {
         return getMembers().contains(member);
+    }
+
+    @Override
+    public void sendMessage(Member sender, String message) {
+        String formatedMessage = Config.formatGuildChatMessage(sender,message);
+        for(Member guildMember : getMembers()){
+            Player guildPlayer = Bukkit.getPlayer(guildMember.getName());
+            if(guildPlayer == null||!guildPlayer.isOnline())continue;
+            guildPlayer.sendMessage(formatedMessage);
+        }
+
     }
 
     @Override
@@ -135,6 +180,16 @@ public class GuildImpl implements Guild {
         }
         member.setRank(newRank);
         return true;
+    }
+
+    @Override
+    public InvitesHandler getInvitesHandler() {
+        return invitesHandler;
+    }
+
+    @Override
+    public PermissionsHandler getPermissionsHandler() {
+        return permissionsHandler;
     }
 
     @Override

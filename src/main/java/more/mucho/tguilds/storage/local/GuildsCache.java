@@ -20,6 +20,9 @@ public class GuildsCache extends AbstractCache<Integer,Guild>{
     public Optional<Guild> getByName(String guildName){
        return cachedMap.values().stream().filter(guild -> guild.getName().equalsIgnoreCase(guildName)).findFirst();
     }
+    public Optional<Guild> getByTag(String tag){
+       return cachedMap.values().stream().filter(guild -> guild.getTag().equalsIgnoreCase(tag)).findFirst();
+    }
     public Optional<Guild> getPlayerGuild(String name) {
         for (Guild guild : cachedMap.values()) {
             boolean isMember = guild.getMembers().stream()

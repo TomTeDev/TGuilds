@@ -6,10 +6,7 @@ import more.mucho.tguilds.guilds.RANK;
 import more.mucho.tguilds.storage.GuildFactory;
 import more.mucho.tguilds.storage.MembersFactory;
 import more.mucho.tguilds.storage.local.Repositories;
-import more.mucho.tguilds.utils.Config;
-import more.mucho.tguilds.utils.GuilUtils;
-import more.mucho.tguilds.utils.PlayerUtils;
-import more.mucho.tguilds.utils.TextUtils;
+import more.mucho.tguilds.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -17,7 +14,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,6 +63,15 @@ public class GuildCommand extends AbstractCommand {
             }
             case "home" -> {
                 return teleportHome(player, args);
+            }
+            case "setowner" -> {
+                return setOwner(player, args);
+            }
+            case "promote" -> {
+                return promote(player, args);
+            }
+            case "demote" -> {
+                return demote(player, args);
             }
             case "delete" -> {
                 return delete(player, args);
@@ -146,8 +151,8 @@ public class GuildCommand extends AbstractCommand {
                                                         guild.addMember(ownerMember);
                                                         sendMessage(sender,
                                                                 "command_info.guild_created",
-                                                                new AbstractMap.SimpleEntry<>("name", guild.getName()),
-                                                                new AbstractMap.SimpleEntry<>("tag", guild.getTag())
+                                                                new Tuple<>("name", guild.getName()),
+                                                                new Tuple<>("tag", guild.getTag())
                                                         );
                                                         return true;
                                                     });
@@ -204,8 +209,161 @@ public class GuildCommand extends AbstractCommand {
             return false;
         }
         guild.getInvitesHandler().addInvited(targetName);
-        sendMessage(player, "command_info.player_invited", new AbstractMap.SimpleEntry<>("name", target.getName()));
-        sendMessage(target, "command_info.you_were_invited", new AbstractMap.SimpleEntry<>("name", player.getName()));
+        sendMessage(player, "command_info.player_invited", new Tuple<>("name", target.getName()));
+        sendMessage(target, "command_info.you_were_invited", new Tuple<>("name", player.getName()));
+
+        return true;
+    }
+
+    private boolean promote(Player sender, String[] args) {
+        if (args.length < 2) {
+            sendCorrectCommand(sender, "promote");
+            return false;
+        }
+        Optional<Member> senderMember = Repositories.getInstance().getMembersRepository().cache().get(sender.getName());
+        if (senderMember.isEmpty()) {
+            sendMessage(sender, "command_info.you_are_not_in_a_guild");
+            return false;
+        }
+        Optional<Guild> senderGuild = Repositories.getInstance().getGuildsRepository().cache().get(senderMember.get().getGuildID());
+        if (senderGuild.isEmpty()) {
+            sendMessage(sender, "command_info.you_are_not_in_a_guild");
+            return false;
+        }
+        String targetName = args[1];
+        Repositories.getInstance().getMembersRepository().getOrLoad(targetName).thenAccept(targetMember -> {
+            if (targetMember.isEmpty()) {
+                sendMessage(sender, "command_info.player_not_found");
+                return;
+            }
+            if (targetMember.get().equals(senderMember.get())) {
+                sendMessage(sender, "command_info.cant_use_it_on_yourself");
+                return;
+            }
+            if (targetMember.get().getGuildID() != senderMember.get().getGuildID()) {
+                sendMessage(sender, "command_info.not_member_of_your_guild");
+                return;
+            }
+            if (targetMember.get().getRank() == RANK.VETERAN) {
+                sendMessage(sender, "command_info.veteran_cant_be_promoted");
+                return;
+            }
+            if (senderMember.get().getRank().power <= (targetMember.get().getRank().power + RANK.POWER_DIF)) {
+                sendMessage(sender, "command_info.insufficient_permissions");
+                return;
+            }
+            RANK nextRank = RANK.getNextPromoteRank(targetMember.get().getRank());
+            if (nextRank == null) {
+                sendMessage(sender, "command_info.unexpected_error");
+                return;
+            }
+
+            targetMember.get().setRank(nextRank);
+
+            Player targetPlayer = Bukkit.getPlayer(targetName);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                sendMessage(targetPlayer, "command_info.you_were_promoted", new Tuple<>("%rank_name%", nextRank.name()));
+            }
+            sendMessage(sender, "command_info.you_have_promoted", new Tuple<>("%target_name%", targetName), new Tuple<>("%rank_name%", nextRank.name()));
+        });
+        return true;
+    }
+
+    private boolean demote(Player sender, String[] args) {
+        if (args.length < 2) {
+            sendCorrectCommand(sender, "demote");
+            return false;
+        }
+        Optional<Member> senderMember = Repositories.getInstance().getMembersRepository().cache().get(sender.getName());
+        if (senderMember.isEmpty()) {
+            sendMessage(sender, "command_info.you_are_not_in_a_guild");
+            return false;
+        }
+        Optional<Guild> senderGuild = Repositories.getInstance().getGuildsRepository().cache().get(senderMember.get().getGuildID());
+        if (senderGuild.isEmpty()) {
+            sendMessage(sender, "command_info.you_are_not_in_a_guild");
+            return false;
+        }
+        String targetName = args[1];
+        Repositories.getInstance().getMembersRepository().getOrLoad(targetName).thenAccept(targetMember -> {
+            if (targetMember.isEmpty()) {
+                sendMessage(sender, "command_info.player_not_found");
+                return;
+            }
+            if (targetMember.get().equals(senderMember.get())) {
+                sendMessage(sender, "command_info.cant_use_it_on_yourself");
+                return;
+            }
+            if (targetMember.get().getGuildID() != senderMember.get().getGuildID()) {
+                sendMessage(sender, "command_info.not_member_of_your_guild");
+                return;
+            }
+            if (targetMember.get().getRank() == RANK.MEMBER) {
+                sendMessage(sender, "command_info.member_cant_be_demoted");
+                return;
+            }
+            if (senderMember.get().getRank().power <= (targetMember.get().getRank().power)) {
+                sendMessage(sender, "command_info.insufficient_permissions");
+                return;
+            }
+            RANK nextRank = RANK.getNextDemoteRank(targetMember.get().getRank());
+            if (nextRank == null) {
+                sendMessage(sender, "command_info.unexpected_error");
+                return;
+            }
+            targetMember.get().setRank(nextRank);
+
+            Player targetPlayer = Bukkit.getPlayer(targetName);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                sendMessage(targetPlayer, "command_info.you_were_demoted", new Tuple<>("%rank_name%", nextRank.name()));
+            }
+            sendMessage(sender, "command_info.you_have_demoted", new Tuple<>("%target_name%", targetName), new Tuple<>("%rank_name%", nextRank.name()));
+        });
+        return true;
+    }
+
+    private boolean setOwner(Player sender, String[] args) {
+        if (args.length < 2) {
+            sendCorrectCommand(sender, "setowner");
+            return false;
+        }
+        Optional<Member> senderMember = Repositories.getInstance().getMembersRepository().cache().get(sender.getName());
+        if (senderMember.isEmpty()) {
+            sendMessage(sender, "command_info.you_are_not_in_a_guild");
+            return false;
+        }
+        if (senderMember.get().getRank() != RANK.OWNER) {
+            sendMessage(sender, "command_info.insufficient_permissions");
+            return false;
+        }
+        Optional<Guild> senderGuild = Repositories.getInstance().getGuildsRepository().cache().get(senderMember.get().getGuildID());
+        if (senderGuild.isEmpty()) {
+            sendMessage(sender, "command_info.you_are_not_in_a_guild");
+            return false;
+        }
+        String targetName = args[1];
+        Repositories.getInstance().getMembersRepository().getOrLoad(targetName).thenAccept(targetMember -> {
+            if (targetMember.isEmpty()) {
+                sendMessage(sender, "command_info.player_not_found");
+                return;
+            }
+            if (targetMember.get().equals(senderMember.get())) {
+                sendMessage(sender, "command_info.cant_use_it_on_yourself");
+                return;
+            }
+            if (targetMember.get().getGuildID() != senderMember.get().getGuildID()) {
+                sendMessage(sender, "command_info.not_member_of_your_guild");
+                return;
+            }
+            senderMember.get().setRank(RANK.OFFICER);
+            targetMember.get().setRank(RANK.OWNER);
+
+            Player targetPlayer = Bukkit.getPlayer(targetName);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                sendMessage(targetPlayer, "command_info.you_are_new_owner");
+            }
+            sendMessage(sender, "command_info.owner_passed", new Tuple<>("%target_name%", targetName));
+        });
 
         return true;
     }
@@ -286,10 +444,10 @@ public class GuildCommand extends AbstractCommand {
         }
         senderGuild.get().removeMember(targetMember.get());
         Repositories.getInstance().getMembersRepository().delete(targetMember.get().getID());
-        sendMessage(sender, "command_info.player_kicked", new AbstractMap.SimpleEntry<>("name", targetMember.get().getName()));
+        sendMessage(sender, "command_info.player_kicked", new Tuple<>("name", targetMember.get().getName()));
         Player targetPlayer = Bukkit.getPlayer(args[1]);
         if (targetPlayer != null && targetPlayer.isOnline()) {
-            sendMessage(targetPlayer, "command_info.you_were_kicked", new AbstractMap.SimpleEntry<>("name", sender.getName()));
+            sendMessage(targetPlayer, "command_info.you_were_kicked", new Tuple<>("name", sender.getName()));
         }
         return true;
     }

@@ -28,6 +28,35 @@ public class GuildsRepositoryImpl implements GuildsRepository {
                 );
     }
 
+    @Override
+    public CompletableFuture<Optional<Guild>> getOrLoadByName(String name) {
+        return CompletableFuture.supplyAsync(() -> guildsCache.getByName(name))
+                .thenCompose(optionalGuild -> optionalGuild
+                        .map(guild -> CompletableFuture.completedFuture(Optional.of(guild)))
+                        .orElseGet(() -> guildDao.getByName(name)
+                                .thenApply(dbGuild -> {
+                                    dbGuild.ifPresent(guild -> guildsCache.add(guild, guild.getID()));
+                                    return dbGuild;
+                                })
+                        )
+                );
+    }
+    @Override
+    public CompletableFuture<Optional<Guild>> getOrLoadByTag(String tag) {
+        return CompletableFuture.supplyAsync(() -> guildsCache.getByTag(tag))
+                .thenCompose(optionalGuild -> optionalGuild
+                        .map(guild -> CompletableFuture.completedFuture(Optional.of(guild)))
+                        .orElseGet(() -> guildDao.getByTag(tag)
+                                .thenApply(dbGuild -> {
+                                    dbGuild.ifPresent(guild -> guildsCache.add(guild, guild.getID()));
+                                    return dbGuild;
+                                })
+                        )
+                );
+    }
+
+
+
     public CompletableFuture<Boolean> saveGuild(Guild guild) {
         return guildDao.addGuild(guild).thenApply(guildID -> {
             if (guildID < 0) return false;

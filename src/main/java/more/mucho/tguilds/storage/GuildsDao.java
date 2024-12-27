@@ -9,4 +9,6 @@ public interface GuildsDao {
     CompletableFuture<Integer> addGuild(Guild guild);
     CompletableFuture<Boolean> removeGuild(int ID);
     CompletableFuture<Optional<Guild>>getGuild(int ID);
+    CompletableFuture<Optional<Guild>>getByTag(String tag);
+    CompletableFuture<Optional<Guild>>getByName(String name);
 }

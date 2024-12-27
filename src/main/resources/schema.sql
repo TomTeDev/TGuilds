@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS `guilds` (
   `id` INT AUTO_INCREMENT,
   `guild_uuid` BINARY(16) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
-  `tag` VARCHAR(32),
+  `tag` VARCHAR(32) NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `owner_uuid` BINARY(16) NOT NULL,
   `activity_points` BIGINT DEFAULT 0,

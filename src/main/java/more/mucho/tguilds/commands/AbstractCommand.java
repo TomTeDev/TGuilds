@@ -2,6 +2,7 @@ package more.mucho.tguilds.commands;
 
 import more.mucho.tguilds.data.ConfigHandler;
 import more.mucho.tguilds.utils.TextUtils;
+import more.mucho.tguilds.utils.Tuple;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -34,11 +35,12 @@ public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
         if(message == null||message.isEmpty())return;
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }*/
-    public void sendMessage(CommandSender sender, String path, Map.Entry<String, String> ... entries) {
+    @SafeVarargs
+    public final void sendMessage(CommandSender sender, String path, Tuple<String, String>... entries) {
         String message = messages.getString(path);
         if(message == null||message.isEmpty())return;
-        for(Map.Entry<String,String> entry : entries){
-            message = message.replace(entry.getKey(), entry.getValue());
+        for(Tuple<String,String> entry : entries){
+            message = message.replace(entry.getFirst(), entry.getSecond());
         }
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }

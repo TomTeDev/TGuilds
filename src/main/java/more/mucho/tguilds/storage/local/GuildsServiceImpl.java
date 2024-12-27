@@ -15,12 +15,10 @@ public class GuildsServiceImpl implements GuildService {
 
 
     public CompletableFuture<Boolean> guildWithNameExists(String name) {
-        return guildsRepository.cache().getGuildByName(name)
-                .thenApply(Optional::isPresent);
+        return guildsRepository.getOrLoadByName(name).thenApply(Optional::isPresent);
     }
 
     public CompletableFuture<Boolean> guildWithTagExists(String tag) {
-        return guildsRepository.cache().getGuildByTag(tag)
-                .thenApply(Optional::isPresent);
+        return guildsRepository.getOrLoadByTag(tag).thenApply(Optional::isPresent);
     }
 }
