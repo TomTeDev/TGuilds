@@ -8,6 +8,7 @@ import more.mucho.tguilds.storage.MembersFactory;
 import more.mucho.tguilds.storage.local.Repositories;
 import more.mucho.tguilds.utils.*;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -28,11 +29,11 @@ public class GuildCommand extends AbstractCommand {
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
         if (!(sender instanceof Player)) return false;
         if (args.length == 0) {
-            sendMessage(sender, "command.try_help");
+            sendMessage(sender, "command_info.try_help");
             return false;
         }
         if (args[0].equalsIgnoreCase("help")) {
-            sendMessages(sender, "command.guild.help");
+            sendMessages(sender, "command_guild_help");
             return true;
         }
         Player player = (Player) sender;
@@ -79,6 +80,7 @@ public class GuildCommand extends AbstractCommand {
             case "togglechat" -> {
                 return toggleChat(player, args);
             }
+
         }
 
         return false;
@@ -97,12 +99,16 @@ public class GuildCommand extends AbstractCommand {
 
         // Validate guild name and tag
         if (!GuilUtils.isValidName(name)) {
-            sendMessage(sender, "command_info.invalid_name");
+            sendMessage(sender, "command_info.invalid_name",
+                    new Tuple<>("%name_min_length%", String.valueOf(Config.NAME_MIN_LENGTH)),
+                    new Tuple<>("%name_max_length%", String.valueOf(Config.NAME_MAX_LENGTH)));
             return false;
         }
 
         if (!GuilUtils.isValidTag(tag)) {
-            sendMessage(sender, "command_info.invalid_tag");
+            sendMessage(sender, "command_info.invalid_tag",
+                    new Tuple<>("%tag_min_length%", String.valueOf(Config.TAG_MIN_LENGTH)),
+                    new Tuple<>("%tag_max_length%", String.valueOf(Config.TAG_MAX_LENGTH)));
             return false;
         }
 
@@ -151,8 +157,8 @@ public class GuildCommand extends AbstractCommand {
                                                         guild.addMember(ownerMember);
                                                         sendMessage(sender,
                                                                 "command_info.guild_created",
-                                                                new Tuple<>("name", guild.getName()),
-                                                                new Tuple<>("tag", guild.getTag())
+                                                                new Tuple<>("%guild_name%", guild.getName()),
+                                                                new Tuple<>("%guild_tag%", guild.getTag())
                                                         );
                                                         return true;
                                                     });
@@ -209,8 +215,8 @@ public class GuildCommand extends AbstractCommand {
             return false;
         }
         guild.getInvitesHandler().addInvited(targetName);
-        sendMessage(player, "command_info.player_invited", new Tuple<>("name", target.getName()));
-        sendMessage(target, "command_info.you_were_invited", new Tuple<>("name", player.getName()));
+        sendMessage(player, "command_info.player_invited", new Tuple<>("%player_name%", target.getName()));
+        sendMessage(target, "command_info.you_were_invited", new Tuple<>("%guild_name%", player.getName()));
 
         return true;
     }
@@ -264,7 +270,7 @@ public class GuildCommand extends AbstractCommand {
             if (targetPlayer != null && targetPlayer.isOnline()) {
                 sendMessage(targetPlayer, "command_info.you_were_promoted", new Tuple<>("%rank_name%", nextRank.name()));
             }
-            sendMessage(sender, "command_info.you_have_promoted", new Tuple<>("%target_name%", targetName), new Tuple<>("%rank_name%", nextRank.name()));
+            sendMessage(sender, "command_info.you_have_promoted", new Tuple<>("%player_name%", targetName), new Tuple<>("%rank_name%", nextRank.name()));
         });
         return true;
     }
@@ -317,7 +323,7 @@ public class GuildCommand extends AbstractCommand {
             if (targetPlayer != null && targetPlayer.isOnline()) {
                 sendMessage(targetPlayer, "command_info.you_were_demoted", new Tuple<>("%rank_name%", nextRank.name()));
             }
-            sendMessage(sender, "command_info.you_have_demoted", new Tuple<>("%target_name%", targetName), new Tuple<>("%rank_name%", nextRank.name()));
+            sendMessage(sender, "command_info.you_have_demoted", new Tuple<>("%player_name%", targetName), new Tuple<>("%rank_name%", nextRank.name()));
         });
         return true;
     }
@@ -362,7 +368,7 @@ public class GuildCommand extends AbstractCommand {
             if (targetPlayer != null && targetPlayer.isOnline()) {
                 sendMessage(targetPlayer, "command_info.you_are_new_owner");
             }
-            sendMessage(sender, "command_info.owner_passed", new Tuple<>("%target_name%", targetName));
+            sendMessage(sender, "command_info.owner_passed", new Tuple<>("%player_name%", targetName));
         });
 
         return true;
@@ -392,7 +398,7 @@ public class GuildCommand extends AbstractCommand {
             return false;
         }
         if (guild.getMembers().size() > Config.MAX_MEMBERS) {
-            sendMessage(player, "command_info.guild_full");
+            sendMessage(player, "command_info.guild_full", new Tuple<>("%max_members%", String.valueOf(Config.MAX_MEMBERS)));
             return false;
         }
         Member member = MembersFactory.createMember("default", player.getName(), player.getUniqueId(), RANK.MEMBER, guild.getID());
@@ -427,11 +433,11 @@ public class GuildCommand extends AbstractCommand {
 
         Optional<Member> targetMember = Repositories.getInstance().getMembersRepository().cache().get(args[1]);
         if (targetMember.isEmpty()) {
-            sendMessage(sender, "command_info.player_not_in_guild");
+            sendMessage(sender, "command_info.not_member_of_your_guild");
             return false;
         }
         if (!senderGuild.get().isMember(targetMember.get())) {
-            sendMessage(sender, "command_info.player_not_in_guild");
+            sendMessage(sender, "command_info.not_member_of_your_guild");
             return false;
         }
         if (!senderGuild.get().getPermissionsHandler().canKick(senderMember.get())) {
@@ -444,10 +450,10 @@ public class GuildCommand extends AbstractCommand {
         }
         senderGuild.get().removeMember(targetMember.get());
         Repositories.getInstance().getMembersRepository().delete(targetMember.get().getID());
-        sendMessage(sender, "command_info.player_kicked", new Tuple<>("name", targetMember.get().getName()));
+        sendMessage(sender, "command_info.player_kicked", new Tuple<>("%player_name%", targetMember.get().getName()));
         Player targetPlayer = Bukkit.getPlayer(args[1]);
         if (targetPlayer != null && targetPlayer.isOnline()) {
-            sendMessage(targetPlayer, "command_info.you_were_kicked", new Tuple<>("name", sender.getName()));
+            sendMessage(targetPlayer, "command_info.you_were_kicked", new Tuple<>("%player_name%", sender.getName()));
         }
         return true;
     }
@@ -500,6 +506,7 @@ public class GuildCommand extends AbstractCommand {
     }
 
     private void sendGuildInfo(Player sender, Guild guild) {
+        sender.sendMessage(ChatColor.RED + "Feature is not ready");
         //TODO fetch parse and send
     }
 
