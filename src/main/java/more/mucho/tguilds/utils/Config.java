@@ -13,7 +13,7 @@ public class Config {
 
     public static String formatGuildChatMessage(Member member, String message) {
         if (message == null || message.isEmpty()) return message;
-        String format = "%rank% %name%: %message%";
+        String format = "#FFD700%rank% #00FF00%name%#AAAAAA: #FFFFFF%message%";
         format = format.replaceAll("%name%", member.getName());
         format = format.replace("%rank%", member.getRank().name());
         format = format.replace("%message%", message);

@@ -1,7 +1,5 @@
 package more.mucho.tguilds.guilds;
 
-import more.mucho.tguilds.storage.InvitesHandler;
-import more.mucho.tguilds.storage.PermissionsHandler;
 import org.bukkit.Location;
 
 import java.util.Optional;

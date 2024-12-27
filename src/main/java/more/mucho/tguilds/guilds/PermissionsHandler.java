@@ -1,6 +1,4 @@
-package more.mucho.tguilds.storage;
-
-import more.mucho.tguilds.guilds.Member;
+package more.mucho.tguilds.guilds;
 
 public interface PermissionsHandler {
     boolean canInvite(Member member);

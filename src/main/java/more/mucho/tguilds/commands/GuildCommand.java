@@ -3,8 +3,8 @@ package more.mucho.tguilds.commands;
 import more.mucho.tguilds.guilds.Guild;
 import more.mucho.tguilds.guilds.Member;
 import more.mucho.tguilds.guilds.RANK;
-import more.mucho.tguilds.storage.GuildFactory;
-import more.mucho.tguilds.storage.MembersFactory;
+import more.mucho.tguilds.guilds.GuildFactory;
+import more.mucho.tguilds.guilds.MembersFactory;
 import more.mucho.tguilds.storage.local.Repositories;
 import more.mucho.tguilds.utils.*;
 import org.bukkit.Bukkit;
@@ -88,24 +88,24 @@ public class GuildCommand extends AbstractCommand {
 
     private boolean createGuild(Player sender, String[] args) {
         // Validate arguments
-        if (args.length != 2) {
+        if (args.length <3) {
             // Correct usage: guild create name TAG
             sendCorrectCommand(sender, "create");
             return false;
         }
 
-        String name = args[0];
-        String tag = args[1];
+        String name = args[1];
+        String tag = args[2];
 
         // Validate guild name and tag
-        if (!GuilUtils.isValidName(name)) {
+        if (!GuildUtils.isValidName(name)) {
             sendMessage(sender, "command_info.invalid_name",
                     new Tuple<>("%name_min_length%", String.valueOf(Config.NAME_MIN_LENGTH)),
                     new Tuple<>("%name_max_length%", String.valueOf(Config.NAME_MAX_LENGTH)));
             return false;
         }
 
-        if (!GuilUtils.isValidTag(tag)) {
+        if (!GuildUtils.isValidTag(tag)) {
             sendMessage(sender, "command_info.invalid_tag",
                     new Tuple<>("%tag_min_length%", String.valueOf(Config.TAG_MIN_LENGTH)),
                     new Tuple<>("%tag_max_length%", String.valueOf(Config.TAG_MAX_LENGTH)));
@@ -143,7 +143,7 @@ public class GuildCommand extends AbstractCommand {
                                             }
 
                                             // Create and save the guild
-                                            Guild guild = GuildFactory.create("default", name, tag, UUID.randomUUID(), Repositories.getInstance().getMembersRepository());
+                                            Guild guild = GuildFactory.create("default", name, tag, UUID.randomUUID(),null, Repositories.getInstance().getMembersRepository());
                                             return Repositories.getInstance()
                                                     .getGuildsRepository()
                                                     .saveGuild(guild)
@@ -154,7 +154,7 @@ public class GuildCommand extends AbstractCommand {
                                                         }
                                                         Member ownerMember = MembersFactory.createMember("default", sender.getName(), UUID.randomUUID(), RANK.OWNER, guild.getID());
                                                         Repositories.getInstance().getMembersRepository().save(ownerMember);
-                                                        guild.addMember(ownerMember);
+                                                        //guild.addMember(ownerMember);
                                                         sendMessage(sender,
                                                                 "command_info.guild_created",
                                                                 new Tuple<>("%guild_name%", guild.getName()),
@@ -484,7 +484,7 @@ public class GuildCommand extends AbstractCommand {
         if (args.length > 1 && !Config.allowViewOthers) return false;
         Optional<Member> member = Repositories.getInstance().getMembersRepository().cache().get(sender.getName());
         if (member.isEmpty() && args.length < 2) {
-            sendCorrectCommand(sender, "sendinfo");
+            sendCorrectCommand(sender, "info");
             return false;
         }
         if (member.isPresent() && args.length < 2) {
@@ -521,7 +521,7 @@ public class GuildCommand extends AbstractCommand {
             sendMessage(sender, "command_info.you_are_not_in_a_guild");
             return false;
         }
-        guild.get().sendMessage(member.get(), TextUtils.subString(args, 1, args.length - 1));
+        guild.get().sendMessage(member.get(), TextUtils.subString(args, 1, args.length));
         return true;
     }
 

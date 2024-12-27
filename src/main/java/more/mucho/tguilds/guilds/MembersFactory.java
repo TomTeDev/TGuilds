@@ -1,9 +1,4 @@
-package more.mucho.tguilds.storage;
-
-import more.mucho.tguilds.guilds.GuildImpl;
-import more.mucho.tguilds.guilds.Member;
-import more.mucho.tguilds.guilds.RANK;
-import org.bukkit.entity.Player;
+package more.mucho.tguilds.guilds;
 
 import java.util.UUID;
 

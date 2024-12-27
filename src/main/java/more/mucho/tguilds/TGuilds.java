@@ -5,6 +5,8 @@ import more.mucho.tguilds.commands.AbstractCommand;
 import more.mucho.tguilds.commands.GuildCommand;
 import more.mucho.tguilds.data.MySQLConfiguration;
 import more.mucho.tguilds.listeners.ChatListener;
+import more.mucho.tguilds.listeners.JoinListener;
+import more.mucho.tguilds.storage.local.Repositories;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.Listener;
@@ -34,7 +36,8 @@ public final class TGuilds extends JavaPlugin {
                 new GuildCommand()
         );
         registerListeners(
-                new ChatListener()
+                new ChatListener(),
+                new JoinListener(Repositories.getInstance().getGuildsRepository(), Repositories.getInstance().getMembersRepository())
         );
     }
 
@@ -95,7 +98,7 @@ public final class TGuilds extends JavaPlugin {
             e.printStackTrace();
         }
 
-
+        Repositories.getInstance().init(hikariDataSource);
     }
 
     private void shutdownDataSource() {

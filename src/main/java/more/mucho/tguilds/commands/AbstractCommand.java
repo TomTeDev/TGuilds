@@ -42,7 +42,7 @@ public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
         for(Tuple<String,String> entry : entries){
             message = message.replace(entry.getFirst(), entry.getSecond());
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        sender.sendMessage(TextUtils.color(message));
     }
     public void sendCorrectCommand(CommandSender sender,String path){
         sender.sendMessage(TextUtils.color(messages.getString("correct_commands."+path)));

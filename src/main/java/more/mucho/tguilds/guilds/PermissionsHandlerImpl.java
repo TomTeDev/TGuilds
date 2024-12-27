@@ -1,9 +1,6 @@
-package more.mucho.tguilds.storage;
+package more.mucho.tguilds.guilds;
 
-import more.mucho.tguilds.guilds.Member;
-import more.mucho.tguilds.guilds.RANK;
-
-public class PermissionsHandlerImpl implements PermissionsHandler{
+public class PermissionsHandlerImpl implements PermissionsHandler {
     @Override
     public boolean canInvite(Member member) {
         return member.getRank().power>= RANK.VETERAN.power;

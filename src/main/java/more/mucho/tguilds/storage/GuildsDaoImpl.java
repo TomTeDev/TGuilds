@@ -3,6 +3,7 @@ package more.mucho.tguilds.storage;
 import more.mucho.tguilds.guilds.Guild;
 import more.mucho.tguilds.guilds.GuildImpl;
 import more.mucho.tguilds.storage.local.Repositories;
+import more.mucho.tguilds.utils.LocationUtils;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -23,6 +24,7 @@ public class GuildsDaoImpl extends AbstractDao<Guild, Integer> implements Guilds
                 rs.getString("name"),
                 rs.getString("tag"),
                 fromBytes(rs.getBytes("guild_uuid")),
+                LocationUtils.fromString(rs.getString("home")),
                 Repositories.getInstance().getMembersRepository()
         );
     }

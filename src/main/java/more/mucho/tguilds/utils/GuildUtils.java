@@ -1,6 +1,6 @@
 package more.mucho.tguilds.utils;
 
-public class GuilUtils {
+public class GuildUtils {
     public static boolean isValidName(String name) {
         return name.length() >= Config.NAME_MIN_LENGTH && name.length() <= Config.NAME_MAX_LENGTH &&
                 name.matches("[0-9a-zA-Z]+");

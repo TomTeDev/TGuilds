@@ -45,6 +45,7 @@ public class TextUtils {
 
     // Process a single lore line
     public static String color(String line) {
+        if(line == null||line.isEmpty())return line;
         String processedLine = line;
 
         // Process gradients
@@ -107,6 +108,7 @@ public class TextUtils {
     }
 
     public static String subString(String[] array,int startIndex,int endIndex){
+        if(startIndex>=endIndex)return "";
         List<String> list = new ArrayList<>(Arrays.asList(array).subList(startIndex, endIndex));
         return String.join(" ",list);
     }

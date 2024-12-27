@@ -1,4 +1,4 @@
-package more.mucho.tguilds.storage;
+package more.mucho.tguilds.guilds;
 
 public interface InvitesHandler {
      boolean isInvited(String name);

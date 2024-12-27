@@ -1,4 +1,4 @@
-package more.mucho.tguilds.storage;
+package more.mucho.tguilds.guilds;
 
 import more.mucho.tguilds.TGuilds;
 import org.bukkit.Bukkit;

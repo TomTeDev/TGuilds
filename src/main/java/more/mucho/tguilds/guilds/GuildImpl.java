@@ -1,15 +1,12 @@
 package more.mucho.tguilds.guilds;
 
-import more.mucho.tguilds.storage.InvitesHandler;
-import more.mucho.tguilds.storage.InvitesHandlerImpl;
-import more.mucho.tguilds.storage.PermissionsHandler;
-import more.mucho.tguilds.storage.PermissionsHandlerImpl;
 import more.mucho.tguilds.storage.local.MembersRepository;
 import more.mucho.tguilds.utils.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -26,22 +23,24 @@ public class GuildImpl implements Guild {
     private final PermissionsHandler permissionsHandler;
     private final InvitesHandler invitesHandler;
 
-    public GuildImpl(int ID, String name, String tag, UUID guildUUID, MembersRepository membersRepository) {
+    public GuildImpl(int ID, String name, String tag, UUID guildUUID, @Nullable Location home, MembersRepository membersRepository) {
         this.ID = ID;
         this.name = name;
         this.tag = tag;
         this.guildUUID = guildUUID;
+        this.home = home;
         this.membersRepository = membersRepository;
         this.membersCache = null; // Load lazily
         this.permissionsHandler = new PermissionsHandlerImpl();
         this.invitesHandler = new InvitesHandlerImpl();
     }
 
-    public GuildImpl(int ID, String name, String tag, UUID guildUUID, MembersRepository membersRepository, PermissionsHandler permissionsHandler, InvitesHandler invitesHandler) {
+    public GuildImpl(int ID, String name, String tag, UUID guildUUID, @Nullable Location home, MembersRepository membersRepository, PermissionsHandler permissionsHandler, InvitesHandler invitesHandler) {
         this.ID = ID;
         this.name = name;
         this.tag = tag;
         this.guildUUID = guildUUID;
+        this.home = home;
         this.membersRepository = membersRepository;
         this.membersCache = null; // Load lazily
         this.permissionsHandler = permissionsHandler;
@@ -144,9 +143,6 @@ public class GuildImpl implements Guild {
 
     @Override
     public boolean addMember(Member member) {
-        if (member.getRank() == RANK.OWNER) {
-            throw new IllegalArgumentException("Cannot add another owner to the guild.");
-        }
         return getMembers().add(member);
     }
 
